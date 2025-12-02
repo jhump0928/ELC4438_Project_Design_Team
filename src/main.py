@@ -7,7 +7,7 @@ from kivy.uix.textinput import TextInput
 from kivy.uix.button import Button
 from kivy.graphics import Rectangle
 from kivy.uix.image import Image
-
+from kivy.clock import Clock
 
 FONT = "04B_03__.TTF"
 
@@ -148,6 +148,19 @@ class PlayScreen(Screen):
             self.bg = Rectangle(source='basic_cloud.jpg')
         self.bind(size=self.update_bg, pos=self.update_bg)
 
+         # Countdown starting time
+        self.time_left = 30
+
+        # Countdown Label
+        self.countdown_label = Label(
+            text=f"Time: {self.time_left}",
+            font_name=FONT,
+            font_size=32,
+            color=(0, 0, 0, 1),
+            pos_hint={'center_x': 0.5, 'center_y': 0.2}
+        )
+        self.root.add_widget(self.countdown_label)
+
         self.target_image = Image(
             source='target.png',
             size_hint=(0.9, 0.9),
@@ -195,7 +208,23 @@ class PlayScreen(Screen):
         self.label.text = f"DIFFICULTY: {self.manager.difficulty}"
         self.update_score(self.score)
         self.update_streak(self.streak)
+        self.time_left = 30
+        self.update_countdown(0)  # ensures UI refresh
+        # Start countdown tick every 1 second
+        self.timer_event = Clock.schedule_interval(self.update_countdown, 1)
 
+    def update_countdown(self, dt):
+        self.time_left -= 1
+        self.countdown_label.text = f"Time: {self.time_left}"
+
+        if self.time_left <= 0:
+            Clock.unschedule(self.timer_event)
+            self.countdown_label.text = "Time: 0"
+            self.game_over()
+
+    def game_over(self):
+        Clock.unschedule(self.timer_event)
+        self.manager.current = "end_screen"
 
     def update_score(self, new_score):
         self.score = new_score
@@ -205,6 +234,16 @@ class PlayScreen(Screen):
         self.streak = new_streak
         self.streak_label.text = f"Streak x{self.streak}"
 
+class EndScreen(Screen):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        layout = FloatLayout()
+        layout.add_widget(Label(
+            text="Game Over!",
+            font_size=40,
+            pos_hint={'center_x': 0.5, 'center_y': 0.6}
+        ))
+        self.add_widget(layout)
 # ---------- Screen Manager ----------
 class GameApp(App):
     def build(self):
@@ -215,6 +254,7 @@ class GameApp(App):
         sm.add_widget(LoginScreen(name='login'))
         sm.add_widget(GameScreen(name='game'))
         sm.add_widget(PlayScreen(name='playscreen'))
+        sm.add_widget(EndScreen(name="end_screen"))
 
         return sm
 
