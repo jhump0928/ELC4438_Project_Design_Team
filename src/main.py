@@ -6,6 +6,8 @@ from kivy.uix.label import Label
 from kivy.uix.textinput import TextInput
 from kivy.uix.button import Button
 from kivy.graphics import Rectangle
+from kivy.uix.image import Image
+
 
 FONT = "04B_03__.TTF"
 
@@ -146,6 +148,13 @@ class PlayScreen(Screen):
             self.bg = Rectangle(source='basic_cloud.jpg')
         self.bind(size=self.update_bg, pos=self.update_bg)
 
+        self.target_image = Image(
+            source='target.png',
+            size_hint=(0.9, 0.9),
+            pos_hint={'center_x': 0.5, 'center_y': 0.5}
+        )
+        self.root.add_widget(self.target_image)
+
         self.label = Label(
             text="",
             font_name=FONT,
@@ -155,13 +164,46 @@ class PlayScreen(Screen):
         )
         self.root.add_widget(self.label)
 
+        self.score_label = Label(
+            text="Score: 0",
+            font_name = FONT,
+            font_size = 32,
+            bold=True,
+            color=(0,0,0,.9),
+            pos_hint={'right': 1.35, 'top': 1.35}
+        )
+        self.root.add_widget(self.score_label)
+        self.score = 0   #initial score
+
+        self.streak_label = Label(
+            text="Score: 0",
+            font_name = FONT,
+            font_size = 25,
+            bold=True,
+            color=(1,0,0,.9),
+            pos_hint={'right': 1.35, 'top': 1.3}
+        )
+        self.root.add_widget(self.streak_label)
+        self.streak = 1   #initial streak
+
+
     def update_bg(self, *args):
         self.bg.pos = self.pos
         self.bg.size = self.size
 
     def on_enter(self):
         self.label.text = f"DIFFICULTY: {self.manager.difficulty}"
+        self.update_score(self.score)
+        self.update_streak(self.streak)
 
+
+    def update_score(self, new_score):
+        self.score = new_score
+        self.score_label.text = f"Score: {self.score}"
+
+    def update_streak(self, new_streak):
+        self.streak = new_streak
+        self.streak_label.text = f"Streak x{self.streak}"
 
 # ---------- Screen Manager ----------
 class GameApp(App):
